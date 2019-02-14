@@ -1,0 +1,53 @@
+
+package analizadores;
+import java_cup.runtime.Symbol; 
+
+%% 
+%class Lexico
+%public 
+%line 
+%char 
+%cup 
+%unicode
+%ignorecase
+
+%{
+    private Symbol symbol(int type) {
+        return new Symbol(type, yyline, yychar, yytext());
+    }
+    private Symbol symbol(int type, Object value) {
+        return new Symbol(type, yyline, yychar, value);
+    }
+%}
+
+ 
+BLANCOS=[ \r\t]+
+ENTERO=[0-9]+
+DECIMAL=[0-9]+("."[  |0-9]+)?
+%%
+
+
+"(" {return new Symbol(sym.PAR_A,yyline,yychar, yytext());}
+")" {return new Symbol(sym.PAR_C,yyline,yychar, yytext());}
+
+"{" {return new Symbol(sym.LLAVE_A,yyline,yychar, yytext());}
+"}" {return new Symbol(sym.LLAVE_C,yyline,yychar, yytext());}
+
+"+" {return new Symbol(sym.SUMA,yyline,yychar, yytext());} 
+"-" {return new Symbol(sym.RESTA,yyline,yychar, yytext());} 
+"/" {return new Symbol(sym.DIVISION,yyline,yychar, yytext());} 
+"*" {return new Symbol(sym.MULTIPLICACION,yyline,yychar, yytext());} 
+"&&" {return new Symbol(sym.AND,yyline,yychar, yytext());} 
+"==" {return new Symbol(sym.IGUAL_QUE,yyline,yychar, yytext());} 
+"true" {return new Symbol(sym.VERDADERO,yyline,yychar, yytext());} 
+"false" {return new Symbol(sym.FALSO,yyline,yychar, yytext());} 
+
+\n {yychar=1;}
+
+{BLANCOS} {} 
+{ENTERO} {return new Symbol(sym.ENTERO,yyline,yychar, yytext());}
+{DECIMAL} {return new Symbol(sym.DECIMAL,yyline,yychar, yytext());}
+
+. {
+    System.err.println("Este es un error lexico: "+yytext()+", en la linea: "+yyline+", en la columna: "+yychar);
+}

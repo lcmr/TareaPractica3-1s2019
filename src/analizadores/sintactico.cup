@@ -1,0 +1,70 @@
+package analizadores; 
+
+import ast.Expresion.TipoOperacion;
+import ast.*;
+import java.util.LinkedList;
+import java_cup.runtime.*;
+
+parser code 
+{:
+    /**
+     * Variable en la que se almacena el arbol de sintaxis abstracta que se 
+     * genera luego del analisis sintáctico.
+     */
+    public Nodo AST;
+    /**
+     * Método al que se llama automáticamente ante algún error sintactico.
+     **/ 
+    public void syntax_error(Symbol s){ 
+            System.err.println("Error Sintáctico en la Línea " + (s.left) +" Columna "+s.right+ ". No se esperaba este componente: " +s.value+"."); 
+    } 
+    /**
+     * Método al que se llama en el momento en que ya no es posible una recuperación de errores.
+     **/ 
+    public void unrecovered_syntax_error(Symbol s) throws java.lang.Exception{ 
+            System.err.println("Error síntactico irrecuperable en la Línea " + (s.left)+ " Columna "+s.right+". Componente " + s.value + " no reconocido."); 
+    }  
+    /**
+     * Método que devuelve el AST que se generó después de realizar el análisis sintáctico. 
+     * @return árbol de sintaxis abstacta que será utilizado posteriormente en la ejecución.
+     */
+     
+    public Nodo getAST() {
+        return AST;
+    }
+:} 
+
+terminal SUMA,MULTIPLICACION,RESTA,DIVISION, UMENOS;
+terminal AND;
+terminal IGUAL_QUE;
+terminal PAR_A, PAR_C, LLAVE_A, LLAVE_C;
+terminal String ENTERO, DECIMAL, VERDADERO, FALSO;
+
+non terminal ini;
+non terminal Nodo e;
+
+
+precedence left AND;
+precedence left IGUAL_QUE;
+precedence left SUMA,RESTA;
+precedence left MULTIPLICACION,DIVISION;
+precedence right UMENOS;
+
+start with ini; 
+
+ini ::= e:valor {: parser.AST = valor; :} 
+;
+
+e ::= 	  RESTA e:val1 {: RESULT = new Aritmetica(val1, TipoOperacion.NEGATIVO); :} %prec UMENOS
+		| e:val1 SUMA e:val2 {: RESULT = new Aritmetica(val1, val2, TipoOperacion.SUMA); :}
+		| e:val1 RESTA e:val2 {: RESULT = new Aritmetica(val1, val2, TipoOperacion.RESTA); :}
+		| e:val1 MULTIPLICACION e:val2 {: RESULT = new Aritmetica( val1, val2, TipoOperacion.MULTIPLICACION ); :}
+		| e:val1 DIVISION e:val2 {: RESULT = new Aritmetica( val1, val2, TipoOperacion.DIVISION ); :}
+		| e:val1 AND e:val2 {: RESULT = new Booleana( val1, val2, TipoOperacion.AND ); :}
+		| e:val1 IGUAL_QUE e:val2 {: RESULT = new Relacional( val1, val2, TipoOperacion.IGUAL_QUE ); :}
+		| ENTERO:val {: RESULT = new Primitivo( Double.valueOf(val), TipoOperacion.NUMERO ); :}
+		| DECIMAL:val {: RESULT = new Primitivo( Double.valueOf(val), TipoOperacion.NUMERO ); :}
+		| VERDADERO:val {: RESULT = new Primitivo( true, TipoOperacion.VERDADERO ); :}
+		| FALSO:val {: RESULT = new Primitivo( false, TipoOperacion.FALSO ); :}
+		| PAR_A e:val PAR_C {: RESULT = val; :}
+;
