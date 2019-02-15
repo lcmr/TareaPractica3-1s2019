@@ -1,6 +1,7 @@
 package analizadores; 
 
 import ast.Expresion.TipoOperacion;
+import ast.Simbolo.Tipo;
 import ast.*;
 import java.util.LinkedList;
 import java_cup.runtime.*;
@@ -38,11 +39,14 @@ terminal SUMA,MULTIPLICACION,RESTA,DIVISION, UMENOS;
 terminal AND;
 terminal IGUAL_QUE;
 terminal PAR_A, PAR_C, LLAVE_A, LLAVE_C;
-terminal String ENTERO, DECIMAL, VERDADERO, FALSO;
+terminal String ENTERO, DECIMAL, VERDADERO, FALSO, IDENTIFICADOR;
+terminal INT, DOUBLE, IMPRIMIR;
+terminal P_COMA, IGUAL;
 
 non terminal ini;
-non terminal Nodo e;
-
+non terminal Tipo tipo;
+non terminal Nodo  instruccion_top, instruccion_sup, instruccion, declaracion, asign, asignacion, imprimir, e;
+non terminal LinkedList<Nodo> instrucciones_top, instrucciones_sup,instrucciones;
 
 precedence left AND;
 precedence left IGUAL_QUE;
@@ -52,8 +56,60 @@ precedence right UMENOS;
 
 start with ini; 
 
-ini ::= e:valor {: parser.AST = valor; :} 
+ini ::= instrucciones_top:valor {: parser.AST = new Arbol(valor); :} 
 ;
+
+instrucciones_top ::= 
+		instrucciones_top:a instruccion_top:b {:RESULT=a; RESULT.add(b);:}
+		| instruccion_top:a {:RESULT=new LinkedList<>(); RESULT.add(a);:}
+		;
+
+instruccion_top ::= 
+		declaracion:a {: RESULT = a; :}
+		| imprimir:a {: RESULT = a; :}
+		| asignacion:a {: RESULT = a; :}
+		| LLAVE_A instrucciones_sup:a LLAVE_C {: RESULT = new Arbol(a); :}
+		;
+
+instrucciones_sup ::= 
+		instrucciones_sup:a instruccion_sup:b {:RESULT=a; RESULT.add(b);:}
+		| instruccion_sup:a {:RESULT=new LinkedList<>(); RESULT.add(a);:}
+		;
+
+instruccion_sup ::= 
+		declaracion:a {: RESULT = a; :}
+		| imprimir:a {: RESULT = a; :}
+		| asignacion:a {: RESULT = a; :}
+		| LLAVE_A instrucciones:a LLAVE_C {: RESULT = new Arbol(a); :}
+		;
+		
+instrucciones ::=
+		instrucciones:a instruccion:b {:RESULT=a; RESULT.add(b);:}
+		| instruccion:a {:RESULT=new LinkedList<>(); RESULT.add(a);:}
+		;
+
+instruccion ::=
+		declaracion:a {: RESULT = a; :}
+		| imprimir:a {: RESULT = a; :}
+		;
+
+imprimir ::= IMPRIMIR PAR_A e:val PAR_C P_COMA {: RESULT = new Imprimir(val); :}
+		;
+				
+asignacion ::= IDENTIFICADOR:id IGUAL e:val P_COMA {: RESULT = new Asignacion(id, val); :} ;
+
+declaracion ::=
+		tipo:tipo IDENTIFICADOR:id asign:val {: RESULT = new Declaracion(id,tipo,val); :} ;
+
+asign ::= 
+		P_COMA {: RESULT = null; :}
+		| IGUAL e:val P_COMA {: RESULT = val; :}
+		;
+
+tipo ::= 
+		INT:a 			{: RESULT = Tipo.INT; :}
+		| DOUBLE:a		{: RESULT = Tipo.DOUBLE; :}
+		;
 
 e ::= 	  RESTA e:val1 {: RESULT = new Aritmetica(val1, TipoOperacion.NEGATIVO); :} %prec UMENOS
 		| e:val1 SUMA e:val2 {: RESULT = new Aritmetica(val1, val2, TipoOperacion.SUMA); :}
