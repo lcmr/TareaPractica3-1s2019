@@ -43,7 +43,13 @@ public class main {
             pars=new analizadores.parser(new analizadores.Lexico(new BufferedReader(new StringReader(text))));
             pars.parse();       
             Raiz = pars.getAST();
-            return String.valueOf(Raiz.accept(visitor)) ;
+            //Se crea una tabla de símbolos global para ejecutar las instrucciones.
+            TablaDeSimbolos tabla=new TablaDeSimbolos();
+            Object val = Raiz.accept(visitor, tabla);
+            if(val == null) {
+            	return "";
+            }
+            return String.valueOf(val) ;
             
         } catch (Exception ex) {
             return("Error fatal en compilación de entrada.");

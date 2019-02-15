@@ -13,16 +13,16 @@ public class VisitorImplement implements Visitor {
 	 * esta devuelve el valor definido.
 	 */
 	@Override
-	public Object visit(Primitivo primitivo) {
+	public Object visit(Primitivo primitivo, TablaDeSimbolos tabla) {
 		// TODO Auto-generated method stub
 		return primitivo.getValor();
 	}
 
 	@Override
-	public Object visit(Aritmetica aritmetica) {
+	public Object visit(Aritmetica aritmetica, TablaDeSimbolos tabla) {
 		
-		Object izq = (aritmetica.get_izq() == null)? null : aritmetica.get_izq().accept(this);
-		Object der = (aritmetica.get_der() == null)? null : aritmetica.get_der().accept(this);
+		Object izq = (aritmetica.get_izq() == null)? null : aritmetica.get_izq().accept(this, tabla);
+		Object der = (aritmetica.get_der() == null)? null : aritmetica.get_der().accept(this, tabla);
         
 		switch (aritmetica.get_tipo()) {
 		case RESTA:
@@ -72,10 +72,10 @@ public class VisitorImplement implements Visitor {
 	}
 
 	@Override
-	public Object visit(Booleana booleano) {
+	public Object visit(Booleana booleano, TablaDeSimbolos tabla) {
 
-		Object izq = (booleano.get_izq() == null)? null : booleano.get_izq().accept(this);
-		Object der = (booleano.get_der() == null)? null : booleano.get_der().accept(this);
+		Object izq = (booleano.get_izq() == null)? null : booleano.get_izq().accept(this, tabla);
+		Object der = (booleano.get_der() == null)? null : booleano.get_der().accept(this, tabla);
 		if(izq instanceof Double){
 			if( (Double)izq == 1) {
 				izq = true;
@@ -105,9 +105,9 @@ public class VisitorImplement implements Visitor {
 	}
 
 	@Override
-	public Object visit(Relacional relacional) {
-		Object izq = (relacional.get_izq() == null)? null : relacional.get_izq().accept(this);
-		Object der = (relacional.get_der() == null)? null : relacional.get_der().accept(this);
+	public Object visit(Relacional relacional, TablaDeSimbolos tabla) {
+		Object izq = (relacional.get_izq() == null)? null : relacional.get_izq().accept(this, tabla);
+		Object der = (relacional.get_der() == null)? null : relacional.get_der().accept(this, tabla);
 		if( izq instanceof Boolean ) {
 			izq = new Double(((Boolean)izq)?1:0);
 		}
@@ -125,6 +125,56 @@ public class VisitorImplement implements Visitor {
 		default:
 			return null;
 		}
+	}
+
+	@Override
+	public Object visit(Arbol arbol, TablaDeSimbolos tabla) {
+		arbol.tablaGlobal = tabla;
+		
+		
+        for(Nodo nodo:arbol.getNodos()){
+            if(nodo instanceof Declaracion){
+                Declaracion d=(Declaracion)nodo;
+                d.accept(this, tabla);
+            }if(nodo instanceof Asignacion){
+                Asignacion d=(Asignacion)nodo;
+                d.accept(this, tabla);
+            }if(nodo instanceof Imprimir){
+                Imprimir d=(Imprimir)nodo;
+                Object val = d.accept(this, tabla); 
+                if(val != null) {
+                    arbol.valor += "\n" + String.valueOf(val);	
+                }
+            }if(nodo instanceof Arbol){
+                Arbol d=(Arbol)nodo;
+                d.accept(this, tabla);
+            }
+        }
+		
+		return arbol.valor;
+	}
+
+	@Override
+	public Object visit(Declaracion declaracion, TablaDeSimbolos tabla) {
+
+        Simbolo aux=new Simbolo(declaracion.id,declaracion.tipo);
+        aux.setParametro(declaracion.parametro);
+        aux.setValor(declaracion.valor.accept(this,tabla));
+        tabla.add(aux);
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public Object visit(Asignacion asignacion, TablaDeSimbolos tabla) {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public Object visit(Imprimir imprimir, TablaDeSimbolos tabla) {
+		// TODO Auto-generated method stub
+		return imprimir.valor.accept(this, tabla);
 	}
 	
 }

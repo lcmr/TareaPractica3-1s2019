@@ -24,9 +24,9 @@ public class Primitivo extends Expresion {
 	}
 	
 	@Override
-	public Object accept(Visitor v) {
+	public Object accept(Visitor v, TablaDeSimbolos tabla) {
 		// TODO Auto-generated method stub
-		return v.visit(this);
+		return v.visit(this, tabla);
 	}
 
 }

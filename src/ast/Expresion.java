@@ -115,6 +115,8 @@ public abstract class Expresion implements Nodo  {
 		IDENTIFICADOR,
 		VERDADERO,
 		FALSO,
+		INT,
+		DOUBLE,
 		AND,
 		IGUAL_QUE,
 		ERROR,
