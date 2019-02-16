@@ -9,13 +9,16 @@ import java.io.StringReader;
 
 import gui.MainWindow;
 import ast.*;
+import errores.Error;
+import errores.ListaErrores;
+import errores.Error.TipoError;
 
 /**
  * @author luis
  *
  */
 public class main {
-
+	static MainWindow frame;
 	/**
 	 * @param args
 	 */
@@ -23,7 +26,7 @@ public class main {
 		EventQueue.invokeLater(new Runnable() {
 			public void run() {
 				try {
-					MainWindow frame = new MainWindow();
+					frame = new MainWindow();
 					frame.setVisible(true);
 				} catch (Exception e) {
 					e.printStackTrace();
@@ -33,9 +36,9 @@ public class main {
 
 	}
 	
-	public static String interpretar(String text) {
+	public static void interpretar(String text) {
         analizadores.parser pars;
-        
+        ListaErrores.newList();
         Visitor visitor = new VisitorImplement();
         Nodo Raiz;
         
@@ -46,13 +49,13 @@ public class main {
             //Se crea una tabla de símbolos global para ejecutar las instrucciones.
             TablaDeSimbolos tabla=new TablaDeSimbolos();
             Object val = Raiz.accept(visitor, tabla);
-            if(val == null) {
-            	return "";
+            if(val != null) {
+            	frame.setOuputText(String.valueOf(val));
             }
-            return String.valueOf(val) ;
-            
+            frame.setErrorText(ListaErrores.getErrors());
         } catch (Exception ex) {
-            return("Error fatal en compilación de entrada.");
+            ListaErrores.lista.add(new Error(TipoError.SEMANTICO, "Error fatal en compilación de entrada. \n"+ ex));
+        	frame.setErrorText(ListaErrores.getErrors());
         } 
     }
 

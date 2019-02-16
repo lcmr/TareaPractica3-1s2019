@@ -9,8 +9,10 @@ public class Primitivo extends Expresion {
 	public Primitivo(Object valor, TipoOperacion tipo) {
 		super(valor,tipo);
 	}
-	
-	public Object getValor() {
+	public Primitivo() {
+		super();
+	}
+	public Object getValor(TablaDeSimbolos tabla) {
 		switch (this.get_tipo()) {
 		case NUMERO:
 			return new Double(this.get_valor().toString());
@@ -18,6 +20,8 @@ public class Primitivo extends Expresion {
 			return true;
 		case FALSO:
 			return false;
+		case IDENTIFICADOR:
+			return tabla.getValor(this.get_valor().toString());
 		default:
 			return null;
 		}

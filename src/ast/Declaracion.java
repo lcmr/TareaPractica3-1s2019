@@ -26,7 +26,18 @@ public class Declaracion implements Nodo {
         id=_id;
         tipo = _tipo;
         valor = _valor;
-        parametro = (_valor == null)?true:false;
+        parametro = false;
+    }
+    /**
+     * Constructor de la clase
+     * @param a Identificador de la variable que será declarada
+     * @param b Tipo de la clase que será declarada
+     */
+    public Declaracion(String _id, Simbolo.Tipo _tipo) {
+        id=_id;
+        tipo = _tipo;
+        valor = new Primitivo();
+        parametro = false;
     }
     /**
      * Función que retorna el valor declarado

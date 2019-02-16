@@ -1,24 +1,26 @@
 package gui;
 
-import java.awt.BorderLayout;
 import javax.swing.JFrame;
 import javax.swing.JPanel;
 import javax.swing.border.EmptyBorder;
 import javax.swing.JTextArea;
 import javax.swing.JButton;
-import javax.swing.AbstractAction;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import main.main;
-import java.awt.GridLayout;
-import javax.swing.JTextField;
-import java.awt.Font;;
+import javax.swing.JLabel;;
 
-public class MainWindow extends JFrame {
+public class MainWindow extends JFrame implements ActionListener{
 
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = 1L;
 	private JPanel contentPane;
-	private JTextField textField;
-
+	private JTextArea txtrIntA;
+	private JTextArea textArea_1;
+	private JTextArea textArea_2;
+	private JButton btnAnalizar;
 
 	/**
 	 * Create the frame.
@@ -26,43 +28,59 @@ public class MainWindow extends JFrame {
 	public MainWindow() {
 		setTitle("Tarea Practica 3");
 		setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-		setBounds(100, 100, 450, 300);
+		setBounds(100, 100, 700, 700);
 		contentPane = new JPanel();
 		contentPane.setBorder(new EmptyBorder(5, 5, 5, 5));
 		setContentPane(contentPane);
-		contentPane.setLayout(new GridLayout(0, 1, 0, 0));
+		contentPane.setLayout(null);
 		
-		JPanel panel = new JPanel();
-		contentPane.add(panel);
-		panel.setLayout(new GridLayout(0, 1, 0, 0));
+		txtrIntA = new JTextArea();
+		txtrIntA.setText("int a = 5;\nimprimir(a);\n{\na = a + 5;\nimprimir(a);\n{\nint b = a + 2;\nimprimir(b);\n}\nimprimir(b);\n}\nimprimir(a);");
+		txtrIntA.setBounds(5, 33, 683, 180);
+		contentPane.add(txtrIntA);
 		
-		JTextArea textArea = new JTextArea();
-		panel.add(textArea);
+		textArea_1 = new JTextArea();
+		textArea_1.setBounds(5, 253, 683, 180);
+		contentPane.add(textArea_1);
 		
-		JButton btnAnalizar = new JButton("Analizar");
-		btnAnalizar.addActionListener(new ActionListener() {
-			public void actionPerformed(ActionEvent e) {
-				textField.setText(main.interpretar(textArea.getText()));
-			}
-		});
+		btnAnalizar = new JButton("Analizar");
+		btnAnalizar.setBounds(596, 633, 92, 25);
+		btnAnalizar.addActionListener(this);
 		
-		JPanel panel_1 = new JPanel();
-		contentPane.add(panel_1);
-		panel_1.setLayout(new GridLayout(0, 1, 0, 0));
-		
-		textField = new JTextField();
-		textField.setFont(new Font("Dialog", Font.BOLD, 12));
-		panel_1.add(textField);
-		textField.setColumns(10);
+		textArea_2 = new JTextArea();
+		textArea_2.setBounds(5, 472, 683, 149);
+		contentPane.add(textArea_2);
 		contentPane.add(btnAnalizar);
+		
+		JLabel lblNewLabel = new JLabel("Entrada");
+		lblNewLabel.setBounds(12, 6, 70, 15);
+		contentPane.add(lblNewLabel);
+		
+		JLabel lblSalida = new JLabel("Salida");
+		lblSalida.setBounds(15, 225, 70, 15);
+		contentPane.add(lblSalida);
+		
+		JLabel lblErrores = new JLabel("Errores");
+		lblErrores.setBounds(5, 445, 70, 15);
+		contentPane.add(lblErrores);
+	}
+
+	@Override
+	public void actionPerformed(ActionEvent e) {
+		// TODO Auto-generated method stub
+		Object fuente = e.getSource();
+		   if (fuente==btnAnalizar)
+			   System.out.println("Inicia Analisis");
+			   main.interpretar(txtrIntA.getText());
 	}
 	
-	private class SwingAction extends AbstractAction {
-		public SwingAction() {
-			putValue(NAME, "Tarea 2");
-			putValue(SHORT_DESCRIPTION, "Operaciones aritmeticas usando el patron de diseno Visitor");
-		}
-		public void actionPerformed(ActionEvent e) {
-		}
+	public void setOuputText(String text) {
+		textArea_1.setText(text);
 	}
+	
+	public void setErrorText(String text) {
+		textArea_2.setText(text);
+	}
+	
+	
 }

@@ -73,6 +73,10 @@ public abstract class Expresion implements Nodo  {
         this._tipo = TipoOperacion.NUMERO;
     }
 	
+    public Expresion() {
+    	_tipo = TipoOperacion.NULL;
+    }
+    
 	public Nodo get_izq() {
 		return _izq;
 	}
@@ -120,6 +124,7 @@ public abstract class Expresion implements Nodo  {
 		AND,
 		IGUAL_QUE,
 		ERROR,
+		NULL,
 	}
 
 }

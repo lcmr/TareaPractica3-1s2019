@@ -45,7 +45,7 @@ terminal P_COMA, IGUAL;
 
 non terminal ini;
 non terminal Tipo tipo;
-non terminal Nodo  instruccion_top, instruccion_sup, instruccion, declaracion, asign, asignacion, imprimir, e;
+non terminal Nodo  instruccion_top, instruccion_sup, instruccion, declaracion, asignacion, imprimir, e;
 non terminal LinkedList<Nodo> instrucciones_top, instrucciones_sup,instrucciones;
 
 precedence left AND;
@@ -57,7 +57,7 @@ precedence right UMENOS;
 start with ini; 
 
 ini ::= instrucciones_top:valor {: parser.AST = new Arbol(valor); :} 
-;
+		;
 
 instrucciones_top ::= 
 		instrucciones_top:a instruccion_top:b {:RESULT=a; RESULT.add(b);:}
@@ -65,9 +65,7 @@ instrucciones_top ::=
 		;
 
 instruccion_top ::= 
-		declaracion:a {: RESULT = a; :}
-		| imprimir:a {: RESULT = a; :}
-		| asignacion:a {: RESULT = a; :}
+		instruccion:a {: RESULT = a; :}
 		| LLAVE_A instrucciones_sup:a LLAVE_C {: RESULT = new Arbol(a); :}
 		;
 
@@ -77,9 +75,7 @@ instrucciones_sup ::=
 		;
 
 instruccion_sup ::= 
-		declaracion:a {: RESULT = a; :}
-		| imprimir:a {: RESULT = a; :}
-		| asignacion:a {: RESULT = a; :}
+		instruccion:a {: RESULT = a; :}
 		| LLAVE_A instrucciones:a LLAVE_C {: RESULT = new Arbol(a); :}
 		;
 		
@@ -90,20 +86,19 @@ instrucciones ::=
 
 instruccion ::=
 		declaracion:a {: RESULT = a; :}
+		| asignacion:a {: RESULT = a; :}
 		| imprimir:a {: RESULT = a; :}
 		;
 
 imprimir ::= IMPRIMIR PAR_A e:val PAR_C P_COMA {: RESULT = new Imprimir(val); :}
+		;			
+
+asignacion ::= IDENTIFICADOR:id IGUAL e:val P_COMA {: RESULT = new Asignacion(id, val); :} 
 		;
-				
-asignacion ::= IDENTIFICADOR:id IGUAL e:val P_COMA {: RESULT = new Asignacion(id, val); :} ;
 
 declaracion ::=
-		tipo:tipo IDENTIFICADOR:id asign:val {: RESULT = new Declaracion(id,tipo,val); :} ;
-
-asign ::= 
-		P_COMA {: RESULT = null; :}
-		| IGUAL e:val P_COMA {: RESULT = val; :}
+		tipo:tipo IDENTIFICADOR:id P_COMA {: RESULT = new Declaracion(id,tipo); :} 
+		| tipo:tipo IDENTIFICADOR:id IGUAL e:val P_COMA {: RESULT = new Declaracion(id,tipo,val); :}
 		;
 
 tipo ::= 
@@ -122,5 +117,6 @@ e ::= 	  RESTA e:val1 {: RESULT = new Aritmetica(val1, TipoOperacion.NEGATIVO); 
 		| DECIMAL:val {: RESULT = new Primitivo( Double.valueOf(val), TipoOperacion.NUMERO ); :}
 		| VERDADERO:val {: RESULT = new Primitivo( true, TipoOperacion.VERDADERO ); :}
 		| FALSO:val {: RESULT = new Primitivo( false, TipoOperacion.FALSO ); :}
+		| IDENTIFICADOR:val {: RESULT = new Primitivo( val, TipoOperacion.IDENTIFICADOR ); :}
 		| PAR_A e:val PAR_C {: RESULT = val; :}
 ;

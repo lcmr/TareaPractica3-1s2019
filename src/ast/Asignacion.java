@@ -3,6 +3,10 @@ package ast;
 public class Asignacion implements Nodo {
 
     /**
+     * Identificador de la tabla de simbolos padre de la asignación.
+     */
+    protected TablaDeSimbolos tablaPadre;
+    /**
      * Identificador de la variable a la que se le asigna el valor.
      */
     protected final String id;

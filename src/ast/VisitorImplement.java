@@ -1,5 +1,9 @@
 package ast;
 
+import errores.Error.TipoError;
+import errores.Error;
+import errores.ListaErrores;
+
 /**
  * @author luis
  * clase VisitorImplement, esta implementa los metodos visit definidos en nuestra interfaz Visitor
@@ -15,7 +19,7 @@ public class VisitorImplement implements Visitor {
 	@Override
 	public Object visit(Primitivo primitivo, TablaDeSimbolos tabla) {
 		// TODO Auto-generated method stub
-		return primitivo.getValor();
+		return primitivo.getValor(tabla);
 	}
 
 	@Override
@@ -29,6 +33,7 @@ public class VisitorImplement implements Visitor {
 			if( izq instanceof Double && der instanceof Double ) {
 				return (Double)izq - (Double)der;	
 			}else {
+                ListaErrores.lista.add(new Error(TipoError.SEMANTICO,"Error de tipos, la resta debe hacerse entre números."));
                 System.err.println("Error de tipos, la resta debe hacerse entre números.");
 				return null;
 			}
@@ -36,6 +41,7 @@ public class VisitorImplement implements Visitor {
 			if( izq instanceof Double && der instanceof Double ) {
 				return (Double)izq + (Double)der;	
 			}else {
+                ListaErrores.lista.add(new Error(TipoError.SEMANTICO,"Error de tipos, la suma debe hacerse entre números."));
                 System.err.println("Error de tipos, la suma debe hacerse entre números.");
 				return null;
 			}	
@@ -43,6 +49,7 @@ public class VisitorImplement implements Visitor {
 			if( izq instanceof Double && der instanceof Double ) {
 				return (Double)izq * (Double)der;
 			}else {
+                ListaErrores.lista.add(new Error(TipoError.SEMANTICO,"Error de tipos, la multiplicación debe hacerse entre números."));
                 System.err.println("Error de tipos, la multiplicación debe hacerse entre números.");
 				return null;
 			}
@@ -51,10 +58,12 @@ public class VisitorImplement implements Visitor {
 				if( (Double) der != 0 ) {
 					return (Double)izq / (Double)der;	
 				}else {
+	                ListaErrores.lista.add(new Error(TipoError.SEMANTICO,"Error division entre 0, la division debe hacerse con numero diferente de cero en el divisor."));
                     System.err.println("Error division entre 0, la division debe hacerse con numero diferente de cero en el divisor.");
 					return null;
 				}
 			}else {
+                ListaErrores.lista.add(new Error(TipoError.SEMANTICO,"Error de tipos, la división debe hacerse entre números."));
                 System.err.println("Error de tipos, la división debe hacerse entre números.");
 				return null;
 			}
@@ -62,6 +71,7 @@ public class VisitorImplement implements Visitor {
 			if( izq instanceof Double) {
 				return - (Double)izq;	
 			}else {
+                ListaErrores.lista.add(new Error(TipoError.SEMANTICO,"Error de tipos, el operador negativo debe aplicarse a un número."));
                 System.err.println("Error de tipos, el operador negativo debe aplicarse a un número.");
 				return null;
 			}
@@ -96,6 +106,7 @@ public class VisitorImplement implements Visitor {
 			if( izq instanceof Boolean && der instanceof Boolean ) {
 				return (Boolean)izq && (Boolean)der;	
 			}else {
+                ListaErrores.lista.add(new Error(TipoError.SEMANTICO, "Error de tipos, la operación and debe hacerse entre expresiones booleanas."));
                 System.err.println("Error de tipos, la operación and debe hacerse entre expresiones booleanas.");
 				return null;
 			}
@@ -119,6 +130,7 @@ public class VisitorImplement implements Visitor {
             if (izq instanceof Double && der instanceof Double) {
                 return (Boolean) (((Double) izq).doubleValue() == ((Double) der).doubleValue());
             } else {
+                ListaErrores.lista.add(new Error(TipoError.SEMANTICO, "Error de tipos, la comparación igual que debe hacerse entre números."));
                 System.err.println("Error de tipos, la comparación igual que debe hacerse entre números.");
                 return null;
             }
@@ -138,6 +150,7 @@ public class VisitorImplement implements Visitor {
                 d.accept(this, tabla);
             }if(nodo instanceof Asignacion){
                 Asignacion d=(Asignacion)nodo;
+                d.tablaPadre = tabla;
                 d.accept(this, tabla);
             }if(nodo instanceof Imprimir){
                 Imprimir d=(Imprimir)nodo;
@@ -147,7 +160,12 @@ public class VisitorImplement implements Visitor {
                 }
             }if(nodo instanceof Arbol){
                 Arbol d=(Arbol)nodo;
-                d.accept(this, tabla);
+                TablaDeSimbolos tablaLocal=new TablaDeSimbolos(); // Creamos una nueva tabla local para la función.
+                tablaLocal.addAll(arbol.tablaGlobal); // Agregamos a la tabla local las referencias a las variables globales.
+                Object val = d.accept(this, tablaLocal);
+                if(val != null) {
+                    arbol.valor += "\n" + String.valueOf(val);	
+                }
             }
         }
 		
@@ -156,18 +174,33 @@ public class VisitorImplement implements Visitor {
 
 	@Override
 	public Object visit(Declaracion declaracion, TablaDeSimbolos tabla) {
-
-        Simbolo aux=new Simbolo(declaracion.id,declaracion.tipo);
-        aux.setParametro(declaracion.parametro);
-        aux.setValor(declaracion.valor.accept(this,tabla));
-        tabla.add(aux);
+		if(tabla.getVariable(declaracion.id) == null) {
+	        Simbolo aux=new Simbolo(declaracion.id,declaracion.tipo);
+	        aux.setParametro(declaracion.parametro);
+	        if(declaracion.valor.accept(this,tabla) != null) {
+	            aux.setValor(declaracion.valor.accept(this,tabla));	
+	        }
+	        tabla.add(aux);
+		}else {
+	        ListaErrores.lista.add(new Error(TipoError.SEMANTICO, "La variable "+declaracion.id+" ya existe en este ambito."));
+	        System.err.println("La variable "+declaracion.id+" ya existe en este ambito.");
+		}
 		// TODO Auto-generated method stub
 		return null;
 	}
 
 	@Override
 	public Object visit(Asignacion asignacion, TablaDeSimbolos tabla) {
-		// TODO Auto-generated method stub
+        if(tabla.getVariable(asignacion.id) != null) {
+            if(asignacion.tablaPadre != null) // Si se definió una tabla padre, se obtendrá de ahí el valor a asignar.
+                tabla.setValor(asignacion.id,asignacion.valor.accept(this,asignacion.tablaPadre));
+            else 
+                tabla.setValor(asignacion.id,asignacion.valor.accept(this,tabla));	
+        }else {
+	        ListaErrores.lista.add(new Error(TipoError.SEMANTICO, "La variable "+asignacion.id+" no existe en este ambito."));
+	        System.err.println("La variable "+asignacion.id+" no existe en este ambito.");
+        }
+        // TODO Auto-generated method stub
 		return null;
 	}
 

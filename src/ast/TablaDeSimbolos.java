@@ -2,6 +2,10 @@ package ast;
 
 import java.util.LinkedList;
 
+import errores.Error;
+import errores.ListaErrores;
+import errores.Error.TipoError;
+
 public class TablaDeSimbolos extends LinkedList<Simbolo> {
 
     /**
@@ -32,6 +36,7 @@ public class TablaDeSimbolos extends LinkedList<Simbolo> {
                 }
             }
         }
+        ListaErrores.lista.add(new Error(TipoError.SEMANTICO, "La variable "+id+" no existe en este ámbito."));
         System.err.println("La variable "+id+" no existe en este ámbito.");
         return null;
     }
@@ -50,6 +55,8 @@ public class TablaDeSimbolos extends LinkedList<Simbolo> {
                 return;
             }
         }
+        ListaErrores.lista.add(new Error(TipoError.SEMANTICO, "La variable "+id+" no existe en este ámbito, por lo "
+                + "que no puede asignársele un valor."));
         System.out.println("La variable "+id+" no existe en este ámbito, por lo "
                 + "que no puede asignársele un valor.");
     }
@@ -65,8 +72,22 @@ public class TablaDeSimbolos extends LinkedList<Simbolo> {
                 return;
             }
         }
+        ListaErrores.lista.add(new Error(TipoError.SEMANTICO, "El parámtro "+id+" que quiere marcar como inicializado no existe en este ámbito, por lo "
+                + "que no puede marcar."));
         System.out.println("El parámtro "+id+" que quiere marcar como inicializado no existe en este ámbito, por lo "
                 + "que no puede marcar.");
+    }
+    
+    Object getVariable(String id) {
+    	for (int i = this.size()-1; i >= 0; i--) {
+            Simbolo s=this.get(i);
+            if(s.isParametro() && s.isParametroInicializado() || !s.isParametro()){
+                if(s.getId().equals(id)){
+                    return s;
+                }
+            }
+        }
+        return null;
     }
     
 }
